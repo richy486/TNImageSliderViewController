@@ -54,6 +54,7 @@ public class TNImageSliderViewController: UIViewController, UICollectionViewData
     
     // MARK: - Properties
     public weak var delegate:TNImageSliderViewControllerDelegate?
+    private var timer:NSTimer?
     
     var collectionView:UICollectionView!
     var collectionViewLayout:UICollectionViewFlowLayout {
@@ -248,7 +249,10 @@ public class TNImageSliderViewController: UIViewController, UICollectionViewData
     private func setupAutoSliderIfNeeded() {
         
         if options.autoSlideIntervalInSeconds > 0 {
-            NSTimer.scheduledTimerWithTimeInterval(options.autoSlideIntervalInSeconds, target: self, selector: #selector(TNImageSliderViewController.timerDidFire(_:)), userInfo: nil, repeats: true)
+            if let timer = timer {
+                timer.invalidate()
+            }
+            timer = NSTimer.scheduledTimerWithTimeInterval(options.autoSlideIntervalInSeconds, target: self, selector: #selector(TNImageSliderViewController.timerDidFire(_:)), userInfo: nil, repeats: true)
         }
         
     }
@@ -328,6 +332,16 @@ public class TNImageSliderViewController: UIViewController, UICollectionViewData
     
     // MARK: - Delegate methods
     // MARK: UICollectionViewDelegate methods
+    public func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+        if let timer = timer {
+            timer.invalidate()
+        }
+    }
+    
+    public func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        timer = NSTimer.scheduledTimerWithTimeInterval(options.autoSlideIntervalInSeconds, target: self, selector: #selector(TNImageSliderViewController.timerDidFire(_:)), userInfo: nil, repeats: true)
+    }
+    
     public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
         
         // If the scroll animation ended, update the page control to reflect the current page we are on
